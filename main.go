@@ -22,19 +22,23 @@ var albums = []album{
 	{ID: 3, Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
 }
 
-func main() {
+func setupRouter() *gin.Engine {
 	router := gin.Default()
 	router.GET("/albums", getAlbums)
 	router.GET("/albums/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
 	router.GET("/", getHealth)
+	return router
+}
 
+func main() {
+	router := setupRouter()
 	router.Run("localhost:8080")
 }
 
 // getAlbums returns the list of albums as JSON.
 func getAlbums(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, albums)
+	c.JSON(http.StatusOK, albums)
 }
 
 // getAlbumByID looks up an album by its ID.
@@ -43,15 +47,16 @@ func getAlbumByID(c *gin.Context) {
 	id := (c.Param("id"))
 	int32_ID, err := strconv.Atoi(id)
 	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
 	}
 	for _, a := range albums {
 		if a.ID == int32_ID {
-			c.IndentedJSON(http.StatusOK, a)
+			c.JSON(http.StatusOK, a)
 			return
 		}
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
+	c.JSON(http.StatusNotFound, gin.H{"message": "album not found"})
 }
 
 // postAlbums adds an album from JSON received in the request body.
@@ -61,15 +66,16 @@ func postAlbums(c *gin.Context) {
 	// Call BindJSON to bind the received JSON to
 	// newAlbum.
 	if err := c.BindJSON(&newAlbum); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
 	}
 
 	// Add the new album to the slice.
 	albums = append(albums, newAlbum)
-	c.IndentedJSON(http.StatusCreated, newAlbum)
+	c.JSON(http.StatusCreated, newAlbum)
 }
 
 // check service is running
 func getHealth(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, gin.H{"status": "up"})
+	c.JSON(http.StatusOK, gin.H{"status": "up"})
 }
